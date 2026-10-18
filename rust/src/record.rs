@@ -198,7 +198,6 @@ impl<'a> Record<'a> {
     }
 
     /// Fields, in order.
-    #[must_use]
     pub fn fields(&self) -> impl ExactSizeIterator<Item = Field<'a>> + 'a {
         let (refs, owned) = match self.fields {
             Fields::Refs(r) => (r, &[][..]),
