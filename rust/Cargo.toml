@@ -1,6 +1,6 @@
 [package]
 name = "serlog"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.99"
 description = "A modern, high-performance logging framework: any number of sinks, each configured on its own, matching the popular loggers through compat profiles."
@@ -14,27 +14,30 @@ categories = ["development-tools::debugging"]
 default = ["console", "regex"]
 console = []
 file = ["dep:flate2"]
-loki = ["dep:ureq", "dep:flate2"]
-mail = ["dep:lettre"]
+loki = ["dep:ureq", "dep:flate2", "dep:rustls"]
+mail = ["dep:lettre", "dep:rustls"]
+ring = ["rustls?/ring"]
+aws-lc-rs = ["rustls?/aws-lc-rs"]
 config = ["console", "dep:serde", "dep:serde_json", "dep:serde-saphyr", "dep:toml"]
 regex = ["dep:regex"]
 log = ["dep:log"]
 tracing = ["dep:tracing-core", "dep:tracing-subscriber"]
-full = ["console", "file", "loki", "mail", "config", "log", "tracing", "regex"]
+full = ["console", "file", "loki", "mail", "ring", "config", "log", "tracing", "regex"]
 
 [dependencies]
 flate2 = { version = "1.1", optional = true }
 jiff = "0.2"
-lettre = { version = "0.11", optional = true, default-features = false, features = ["smtp-transport", "builder", "hostname", "rustls", "ring", "rustls-platform-verifier"] }
+lettre = { version = "0.11", optional = true, default-features = false, features = ["smtp-transport", "builder", "hostname", "rustls", "rustls-no-provider", "rustls-platform-verifier"] }
 log = { version = "0.4", optional = true }
 regex = { version = "1.13", optional = true }
+rustls = { version = "0.23", optional = true, default-features = false, features = ["std", "tls12"] }
 serde = { version = "1", optional = true, features = ["derive"] }
 serde-saphyr = { version = "2", optional = true }
 serde_json = { version = "1", optional = true, features = ["preserve_order"] }
 toml = { version = "1.1", optional = true }
 tracing-core = { version = "0.1", optional = true }
 tracing-subscriber = { version = "0.3", optional = true, default-features = false, features = ["registry"] }
-ureq = { version = "3.4", optional = true }
+ureq = { version = "3.4", optional = true, default-features = false, features = ["rustls-no-provider", "rustls-webpki-roots"] }
 
 [dev-dependencies]
 flate2 = "1.1"

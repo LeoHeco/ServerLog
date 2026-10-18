@@ -172,6 +172,9 @@ impl Sink for Loki {
                 self.url
             )));
         }
+        if self.url.starts_with("https://") {
+            crate::tls::ensure()?;
+        }
         if self.connect {
             let r = self
                 .agent()

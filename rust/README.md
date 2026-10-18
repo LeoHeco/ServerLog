@@ -4,7 +4,7 @@ A modern, high-performance logging framework: any number of sinks, each configur
 
 ```toml
 [dependencies]
-serlog = { version = "0.1", features = ["file", "loki", "config"] }
+serlog = { version = "0.1", features = ["file", "loki", "ring", "config"] }
 ```
 
 ## Start
@@ -133,8 +133,9 @@ tracing_subscriber::registry().with(serlog::Layer).init();      // `tracing`, sp
 | `file` | the file sink |
 | `loki` | the Loki and Alloy sink |
 | `mail` | the mail sink |
+| `ring`, `aws-lc-rs` | the rustls crypto provider for `loki` and `mail` when the program installs none; pick the one the rest of the program uses |
 | `config` | YAML, JSON and TOML config |
 | `log`, `tracing` | the bridges |
-| `full` | all of them |
+| `full` | all of them, with `ring` |
 
 Rust 1.99 or later. MIT licence.

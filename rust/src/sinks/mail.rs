@@ -139,6 +139,9 @@ impl Mail {
         if to.is_empty() {
             return Err(bad(&"no recipients"));
         }
+        if self.security != Security::None {
+            crate::tls::ensure()?;
+        }
         let mut smtp = match self.security {
             Security::Tls => SmtpTransport::relay(&self.host).map_err(|e| bad(&e))?,
             Security::StartTls => SmtpTransport::starttls_relay(&self.host).map_err(|e| bad(&e))?,

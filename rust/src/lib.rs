@@ -41,6 +41,8 @@ mod scope;
 mod sink;
 pub mod sinks;
 mod slot;
+#[cfg(any(feature = "loki", feature = "mail"))]
+mod tls;
 mod value;
 
 #[cfg(feature = "config")]
