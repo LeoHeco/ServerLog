@@ -8,10 +8,10 @@ use crate::slot::Core;
 
 mod tls {
     #![cfg_attr(
-        windows,
+        all(windows, target_env = "gnu"),
         expect(
             clippy::missing_const_for_thread_local,
-            reason = "the initialisers are already `const`; clippy misreads the Windows expansion"
+            reason = "the initialisers are already `const`; clippy misreads the windows-gnu expansion"
         )
     )]
 

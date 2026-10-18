@@ -8,10 +8,10 @@ use tls::BOUND;
 
 mod tls {
     #![cfg_attr(
-        windows,
+        all(windows, target_env = "gnu"),
         expect(
             clippy::missing_const_for_thread_local,
-            reason = "the initialiser is already `const`; clippy misreads the Windows expansion"
+            reason = "the initialiser is already `const`; clippy misreads the windows-gnu expansion"
         )
     )]
 
