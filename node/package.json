@@ -1,0 +1,77 @@
+{
+  "name": "serlog",
+  "version": "0.1.0",
+  "description": "A modern, high-performance logging framework: any number of sinks, each configured on its own.",
+  "license": "MIT",
+  "keywords": [
+    "logging",
+    "logger",
+    "log",
+    "structured",
+    "json",
+    "loki",
+    "alarm",
+    "pino",
+    "winston"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeoHeco/ServerLog.git",
+    "directory": "node"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "check": "tsc --noEmit && biome check .",
+    "fmt": "biome check --write .",
+    "test": "node --test \"test/*.test.ts\""
+  },
+  "peerDependencies": {
+    "nodemailer": "^10.1.2",
+    "smol-toml": "^1.9.1",
+    "yaml": "^2.9.1"
+  },
+  "peerDependenciesMeta": {
+    "nodemailer": {
+      "optional": true
+    },
+    "smol-toml": {
+      "optional": true
+    },
+    "yaml": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^26.6.5",
+    "@types/nodemailer": "^8.0.2",
+    "nodemailer": "^10.1.2",
+    "smol-toml": "^1.9.1",
+    "tsdown": "^0.23.1",
+    "typescript": "^7.0.2",
+    "yaml": "^2.9.1"
+  }
+}

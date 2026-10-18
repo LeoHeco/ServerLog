@@ -1,0 +1,89 @@
+{
+  "about": "A slot's health machine. Each step writes at `at` seconds; `result` is what the sink says if the write goes ahead. After the step the machine must report `tried`, `health` and `phase` (null for none). `tell` is report, silent or folded.",
+  "cases": [
+    {
+      "name": "one failure is told once and resolved after the probe",
+      "probe": 5, "remind": 3600, "tell": "report",
+      "steps": [
+        { "at": 0, "result": "err", "tried": true, "health": "down", "phase": "opened" },
+        { "at": 1, "result": "ok", "tried": false, "health": "down", "phase": null },
+        { "at": 6, "result": "ok", "tried": true, "health": "up", "phase": "resolved" }
+      ],
+      "skipped": 1
+    },
+    {
+      "name": "a failed probe doubles the wait",
+      "probe": 5, "remind": 3600, "tell": "report",
+      "steps": [
+        { "at": 0, "result": "err", "tried": true, "health": "down", "phase": "opened" },
+        { "at": 5, "result": "err", "tried": true, "health": "down", "phase": null },
+        { "at": 9, "result": "ok", "tried": false, "health": "down", "phase": null },
+        { "at": 15, "result": "ok", "tried": true, "health": "up", "phase": "resolved" }
+      ],
+      "skipped": 1
+    },
+    {
+      "name": "a long failure is told again after the reminder interval",
+      "probe": 5, "remind": 10, "tell": "report",
+      "steps": [
+        { "at": 0, "result": "err", "tried": true, "health": "down", "phase": "opened" },
+        { "at": 5, "result": "err", "tried": true, "health": "down", "phase": null },
+        { "at": 15, "result": "err", "tried": true, "health": "down", "phase": "reminder" },
+        { "at": 35, "result": "ok", "tried": true, "health": "up", "phase": "resolved" }
+      ],
+      "skipped": 0
+    },
+    {
+      "name": "probe 0 tries every record and only drops repeated reports",
+      "probe": 0, "remind": 3600, "tell": "report",
+      "steps": [
+        { "at": 0, "result": "err", "tried": true, "health": "down", "phase": "opened" },
+        { "at": 0.5, "result": "err", "tried": true, "health": "down", "phase": null },
+        { "at": 1, "result": "ok", "tried": true, "health": "up", "phase": "resolved" }
+      ],
+      "skipped": 0
+    },
+    {
+      "name": "a silent slot never reports",
+      "probe": 5, "remind": 3600, "tell": "silent",
+      "steps": [
+        { "at": 0, "result": "err", "tried": true, "health": "down", "phase": null },
+        { "at": 6, "result": "ok", "tried": true, "health": "up", "phase": null }
+      ],
+      "skipped": 0
+    },
+    {
+      "name": "a failure folded into another incident still reports recovery",
+      "probe": 5, "remind": 3600, "tell": "folded",
+      "steps": [
+        { "at": 0, "result": "err", "tried": true, "health": "down", "phase": null },
+        { "at": 6, "result": "ok", "tried": true, "health": "up", "phase": "resolved" }
+      ],
+      "skipped": 0
+    },
+    {
+      "name": "the wait stops growing at five minutes",
+      "probe": 100, "remind": 3600, "tell": "report",
+      "steps": [
+        { "at": 0, "result": "err", "tried": true, "health": "down", "phase": "opened" },
+        { "at": 100, "result": "err", "tried": true, "health": "down", "phase": null },
+        { "at": 300, "result": "err", "tried": true, "health": "down", "phase": null },
+        { "at": 599, "result": "ok", "tried": false, "health": "down", "phase": null },
+        { "at": 600, "result": "ok", "tried": true, "health": "up", "phase": "resolved" }
+      ],
+      "skipped": 1
+    },
+    {
+      "name": "after recovery the wait starts over",
+      "probe": 5, "remind": 3600, "tell": "report",
+      "steps": [
+        { "at": 0, "result": "err", "tried": true, "health": "down", "phase": "opened" },
+        { "at": 5, "result": "err", "tried": true, "health": "down", "phase": null },
+        { "at": 15, "result": "ok", "tried": true, "health": "up", "phase": "resolved" },
+        { "at": 16, "result": "err", "tried": true, "health": "down", "phase": "opened" },
+        { "at": 21, "result": "ok", "tried": true, "health": "up", "phase": "resolved" }
+      ],
+      "skipped": 0
+    }
+  ]
+}

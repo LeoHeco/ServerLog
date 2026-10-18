@@ -1,0 +1,159 @@
+{
+  "meta": { "app": "demo", "env": "prod", "instance": "n1" },
+  "cases": [
+    {
+      "record": {
+        "time": 1700000000,
+        "level": "warn",
+        "target": "app::sync",
+        "msg": "disk 91% full",
+        "file": "src/sync.rs",
+        "line": 12,
+        "fields": [["mirror", "debian"], ["id", 7]]
+      },
+      "patterns": [
+        { "pattern": "{time:utc} {level} {target}: {msg}{fields}", "expect": "2023-11-14T22:13:20Z WARN app::sync: disk 91% full mirror=debian id=7" },
+        { "pattern": "{{{level:lower>6}}} {file}:{line}", "expect": "{  warn} src/sync.rs:12" },
+        { "pattern": "{level:<7}|{msg:q}|{fields:q}", "expect": "WARN   |\"disk 91% full\"| mirror=debian id=7" },
+        { "pattern": "{target:>12}|{level:^7}|{msg:.4}", "expect": "   app::sync| WARN  |disk" },
+        { "pattern": "{target:~6} {file:base}", "expect": "a::sync sync.rs" },
+        { "pattern": "{time:unix} {time:unix_ms}", "expect": "1700000000 1700000000000" },
+        { "pattern": "{app}/{env}/{instance}", "expect": "demo/prod/n1" }
+      ],
+      "presets": [
+        { "name": "serlog", "tail": " WARN  app::sync: disk 91% full mirror=debian id=7" },
+        { "name": "tracing", "tail": "  WARN app::sync: disk 91% full mirror=debian id=7" },
+        { "name": "env_logger", "expect": "[2023-11-14T22:13:20Z WARN  app::sync] disk 91% full" },
+        { "name": "python", "expect": "WARNING:app::sync:disk 91% full" },
+        { "name": "logback", "tail": "] WARN  app::sync - disk 91% full" },
+        { "name": "slog", "tail": " level=WARN msg=\"disk 91% full\" mirror=debian id=7" }
+      ],
+      "logfmt": "time=2023-11-14T22:13:20Z level=warn target=app::sync msg=\"disk 91% full\" mirror=debian id=7",
+      "pretty": " WARN  app::sync disk 91% full\n    mirror = debian\n    id     = 7",
+      "json": "{\"time\":\"2023-11-14T22:13:20.000Z\",\"level\":\"warn\",\"target\":\"app::sync\",\"msg\":\"disk 91% full\",\"file\":\"src/sync.rs\",\"line\":12,\"mirror\":\"debian\",\"id\":7,\"app\":\"demo\",\"env\":\"prod\",\"instance\":\"n1\"}",
+      "schemas": [
+        {
+          "schema": "pino",
+          "keys": ["level", "time", "pid", "hostname", "mirror", "id", "msg"],
+          "has": { "level": 40, "time": 1700000000000, "mirror": "debian", "id": 7, "msg": "disk 91% full" }
+        },
+        {
+          "schema": "bunyan",
+          "keys": ["name", "hostname", "pid", "level", "mirror", "id", "msg", "time", "v"],
+          "has": { "name": "demo", "level": 40, "msg": "disk 91% full", "time": "2023-11-14T22:13:20.000Z", "v": 0 }
+        },
+        {
+          "schema": "zap",
+          "keys": ["level", "ts", "logger", "caller", "msg", "mirror", "id"],
+          "has": { "level": "warn", "ts": 1700000000.0, "logger": "app::sync", "caller": "src/sync.rs:12", "msg": "disk 91% full" }
+        },
+        {
+          "schema": "slog",
+          "keys": ["time", "level", "msg", "mirror", "id"],
+          "has": { "level": "WARN", "msg": "disk 91% full", "mirror": "debian", "id": 7 }
+        },
+        {
+          "schema": "structlog",
+          "keys": ["event", "mirror", "id", "level", "logger", "timestamp"],
+          "has": { "event": "disk 91% full", "level": "warn", "logger": "app::sync", "timestamp": "2023-11-14T22:13:20.000Z" }
+        },
+        {
+          "schema": "logstash",
+          "keys": ["@timestamp", "@version", "message", "logger_name", "thread_name", "level", "level_value", "mirror", "id"],
+          "has": { "@version": "1", "message": "disk 91% full", "logger_name": "app::sync", "level": "WARN", "level_value": 30000 }
+        },
+        {
+          "schema": "ecs",
+          "keys": ["@timestamp", "log.level", "message", "ecs.version", "log.logger", "log.origin.file.name", "log.origin.file.line", "process.pid", "host.hostname", "service.name", "service.environment", "service.node.name", "mirror", "id"],
+          "has": { "@timestamp": "2023-11-14T22:13:20.000Z", "log.level": "warn", "message": "disk 91% full", "log.logger": "app::sync", "log.origin.file.line": 12, "service.name": "demo", "service.environment": "prod", "service.node.name": "n1" }
+        },
+        {
+          "schema": "gelf",
+          "keys": ["version", "host", "short_message", "timestamp", "level", "_target", "_mirror"],
+          "has": { "version": "1.1", "short_message": "disk 91% full", "timestamp": 1700000000.0, "level": 4, "_target": "app::sync", "_mirror": "debian" }
+        },
+        {
+          "schema": "otel",
+          "keys": ["timestamp", "severity_text", "severity_number", "body", "attributes", "resource"],
+          "has": { "timestamp": "2023-11-14T22:13:20.000000000Z", "severity_text": "WARN", "severity_number": 13, "body": "disk 91% full" }
+        }
+      ]
+    },
+    {
+      "record": {
+        "time": 1700000000,
+        "level": "error",
+        "target": "net",
+        "msg": "said \"no\"\nthen left",
+        "fields": [["peer", "10.0.0.1:873"], ["note", ""]]
+      },
+      "patterns": [
+        { "pattern": "{level:lower} {msg:q}{fields:q}", "expect": "error \"said \\\"no\\\"\\nthen left\" peer=10.0.0.1:873 note=\"\"" },
+        { "pattern": "{file}:{line}", "expect": "?:?" }
+      ],
+      "presets": [],
+      "logfmt": "time=2023-11-14T22:13:20Z level=error target=net msg=\"said \\\"no\\\"\\nthen left\" peer=10.0.0.1:873 note=\"\"",
+      "json": "{\"time\":\"2023-11-14T22:13:20.000Z\",\"level\":\"error\",\"target\":\"net\",\"msg\":\"said \\\"no\\\"\\nthen left\",\"peer\":\"10.0.0.1:873\",\"note\":\"\",\"app\":\"demo\",\"env\":\"prod\",\"instance\":\"n1\"}",
+      "schemas": []
+    },
+    {
+      "record": {
+        "time": 1700000000,
+        "level": "fatal",
+        "target": "db",
+        "msg": "lost",
+        "fields": [["n", 3], ["ratio", 0.5], ["ok", false], ["none", null], ["list", ["a", "b"]], ["req", { "id": 7, "path": "/x" }]]
+      },
+      "patterns": [
+        { "pattern": "{level} {msg}{fields}", "expect": "FATAL lost n=3 ratio=0.5 ok=false none=null list=[a, b] req.id=7 req.path=/x" },
+        { "pattern": "{level:lower}{fields:q}", "expect": "fatal n=3 ratio=0.5 ok=false none=null list=\"[a, b]\" req.id=7 req.path=/x" }
+      ],
+      "presets": [
+        { "name": "python", "expect": "CRITICAL:db:lost" },
+        { "name": "slog", "tail": " level=ERROR+4 msg=lost n=3 ratio=0.5 ok=false none=null list=\"[a, b]\" req.id=7 req.path=/x" }
+      ],
+      "json": "{\"time\":\"2023-11-14T22:13:20.000Z\",\"level\":\"fatal\",\"target\":\"db\",\"msg\":\"lost\",\"n\":3,\"ratio\":0.5,\"ok\":false,\"none\":null,\"list\":[\"a\",\"b\"],\"req\":{\"id\":7,\"path\":\"/x\"},\"app\":\"demo\",\"env\":\"prod\",\"instance\":\"n1\"}",
+      "schemas": []
+    },
+    {
+      "record": {
+        "time": 1700000000,
+        "level": "error",
+        "target": "sync",
+        "msg": "gave up",
+        "fields": [["error", { "$error": ["connect", "refused"] }], ["tries", 3]]
+      },
+      "patterns": [
+        { "pattern": "{msg}: {error}{fields}", "expect": "gave up: connect: refused tries=3" },
+        { "pattern": "{msg}{fields}", "expect": "gave up error=connect: refused tries=3" }
+      ],
+      "presets": [],
+      "json": "{\"time\":\"2023-11-14T22:13:20.000Z\",\"level\":\"error\",\"target\":\"sync\",\"msg\":\"gave up\",\"error\":{\"message\":\"connect\",\"causes\":[\"refused\"]},\"tries\":3,\"app\":\"demo\",\"env\":\"prod\",\"instance\":\"n1\"}",
+      "schemas": [
+        { "schema": "pino", "keys": ["level", "time", "pid", "hostname", "err", "tries", "msg"], "has": { "err": { "message": "connect", "causes": ["refused"] } } }
+      ]
+    }
+  ],
+  "filters": [
+    {
+      "spec": "warn, app=debug, app::db=trace, app::net=off, noisy",
+      "allow": [["warn", "other"], ["debug", "app"], ["debug", "app::sync"], ["trace", "app::db::pool"], ["trace", "noisy::x"]],
+      "deny": [["info", "other"], ["trace", "app::sync"], ["error", "app::net"], ["debug", "apparent"]]
+    },
+    { "spec": "off", "allow": [], "deny": [["fatal", "any"]] },
+    { "spec": "", "allow": [["error", "x"], ["fatal", "x"]], "deny": [["warn", "x"]] },
+    {
+      "spec": "info,com.acme=debug,com.acme.db=off",
+      "allow": [["debug", "com.acme.web"], ["info", "org.x"]],
+      "deny": [["debug", "org.x"], ["error", "com.acme.db.pool"], ["debug", "com.acmex"]]
+    },
+    {
+      "spec": "warn,web:*=error,app=debug",
+      "allow": [["error", "web:api"], ["debug", "app::x"], ["warn", "other"]],
+      "deny": [["warn", "web:api"], ["info", "other"]]
+    },
+    { "spec": "35", "allow": [["warn", "x"]], "deny": [["info", "x"]] },
+    { "spec": "info,app=fatal", "allow": [["fatal", "app"]], "deny": [["error", "app"]] },
+    { "spec": "info/sync(ed)?", "allow": [["info", "x"]], "deny": [], "messages": { "allow": ["synced 3 files"], "deny": ["idle"] } }
+  ]
+}

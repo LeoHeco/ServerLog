@@ -1,0 +1,764 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "serlog config",
+  "description": "Settings for every serlog package: sinks, processors, alarms and the hub.",
+  "type": "object",
+  "properties": {
+    "app": {
+      "type": "string"
+    },
+    "env": {
+      "type": "string"
+    },
+    "instance": {
+      "type": "string"
+    },
+    "compat": {
+      "enum": [
+        "serlog",
+        "tracing",
+        "env_logger",
+        "python",
+        "logback",
+        "log4j",
+        "slog",
+        "pino"
+      ]
+    },
+    "level": {
+      "$ref": "#/$defs/level"
+    },
+    "filter": {
+      "type": "string"
+    },
+    "filter_env": {
+      "type": "string"
+    },
+    "levels": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          {
+            "type": "object",
+            "required": [
+              "value"
+            ],
+            "properties": {
+              "value": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "colour": {
+                "$ref": "#/$defs/colour"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "process": {
+      "$ref": "#/$defs/process"
+    },
+    "redact": {
+      "$ref": "#/$defs/names"
+    },
+    "sinks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sink"
+      }
+    },
+    "alarms": {
+      "type": "object",
+      "propertyNames": {
+        "not": {
+          "enum": [
+            "panic",
+            "ignore"
+          ]
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/alarm"
+      }
+    },
+    "watch": {
+      "$ref": "#/$defs/duration"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "level": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      ]
+    },
+    "duration": {
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^\\s*[0-9]+\\s*(ms|s|m|h|d)?\\s*$"
+        }
+      ]
+    },
+    "size": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^\\s*[0-9]+\\s*([bB]|[kKmMgG][bB]?|[kKmMgG][iI][bB])?\\s*$"
+        }
+      ]
+    },
+    "colour": {
+      "enum": [
+        "plain",
+        "red",
+        "green",
+        "yellow",
+        "blue",
+        "magenta",
+        "cyan",
+        "white",
+        "grey",
+        "gray",
+        "alarm"
+      ]
+    },
+    "names": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "pairs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      }
+    },
+    "condition": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "$ref": "#/$defs/names"
+        },
+        "fields": {
+          "$ref": "#/$defs/pairs"
+        },
+        "level": {
+          "$ref": "#/$defs/level"
+        }
+      },
+      "additionalProperties": false
+    },
+    "step": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 1,
+          "properties": {
+            "redact": {
+              "type": "object",
+              "properties": {
+                "keys": {
+                  "$ref": "#/$defs/names"
+                },
+                "paths": {
+                  "$ref": "#/$defs/names"
+                },
+                "patterns": {
+                  "$ref": "#/$defs/names"
+                },
+                "mask": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "sanitise": {
+              "oneOf": [
+                {
+                  "const": true
+                },
+                {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              ]
+            },
+            "fields": {
+              "type": "object"
+            },
+            "match": {
+              "$ref": "#/$defs/condition"
+            },
+            "exclude": {
+              "$ref": "#/$defs/condition"
+            },
+            "sample": {
+              "type": "object",
+              "properties": {
+                "first": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "every": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "per": {
+                  "$ref": "#/$defs/duration"
+                }
+              },
+              "additionalProperties": false
+            },
+            "limit": {
+              "type": "object",
+              "required": [
+                "rate"
+              ],
+              "properties": {
+                "rate": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "burst": {
+                  "type": "number",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "dedupe": {
+              "type": "object",
+              "properties": {
+                "within": {
+                  "$ref": "#/$defs/duration"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "process": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "alarm": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "tiers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        },
+        "on_fail": {
+          "enum": [
+            "panic",
+            "ignore"
+          ]
+        },
+        "remind": {
+          "$ref": "#/$defs/duration"
+        }
+      }
+    },
+    "sink": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "not": {
+            "const": "*"
+          }
+        },
+        "level": {
+          "$ref": "#/$defs/level"
+        },
+        "filter": {
+          "type": "string"
+        },
+        "process": {
+          "$ref": "#/$defs/process"
+        },
+        "layout": {
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "text",
+            "logfmt",
+            "json",
+            "pretty"
+          ]
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "schema": {
+          "enum": [
+            "serlog",
+            "pino",
+            "bunyan",
+            "zap",
+            "slog",
+            "structlog",
+            "logstash",
+            "ecs",
+            "gelf",
+            "otel"
+          ]
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "levels": {
+          "enum": [
+            "name",
+            "number"
+          ]
+        },
+        "nest": {
+          "type": "string"
+        },
+        "colour": {
+          "enum": [
+            "auto",
+            "always",
+            "never"
+          ]
+        },
+        "colours": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "alarm_only": {
+          "type": "boolean"
+        },
+        "on_fail": {
+          "type": "string"
+        },
+        "queue": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "batch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "wait": {
+          "$ref": "#/$defs/duration"
+        },
+        "full": {
+          "enum": [
+            "drop",
+            "block"
+          ]
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "probe": {
+          "$ref": "#/$defs/duration"
+        }
+      },
+      "not": {
+        "required": [
+          "level",
+          "filter"
+        ]
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "console"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [],
+            "properties": {
+              "kind": true,
+              "name": true,
+              "level": true,
+              "filter": true,
+              "process": true,
+              "layout": true,
+              "format": true,
+              "pattern": true,
+              "schema": true,
+              "keys": true,
+              "levels": true,
+              "nest": true,
+              "colour": true,
+              "colours": true,
+              "alarm_only": true,
+              "on_fail": true,
+              "queue": true,
+              "batch": true,
+              "wait": true,
+              "full": true,
+              "retries": true,
+              "probe": true,
+              "stream": {
+                "enum": [
+                  "stdout",
+                  "stderr",
+                  "auto"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "file"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "path"
+            ],
+            "properties": {
+              "kind": true,
+              "name": true,
+              "level": true,
+              "filter": true,
+              "process": true,
+              "layout": true,
+              "format": true,
+              "pattern": true,
+              "schema": true,
+              "keys": true,
+              "levels": true,
+              "nest": true,
+              "colour": true,
+              "colours": true,
+              "alarm_only": true,
+              "on_fail": true,
+              "queue": true,
+              "batch": true,
+              "wait": true,
+              "full": true,
+              "retries": true,
+              "probe": true,
+              "path": {
+                "type": "string"
+              },
+              "append": {
+                "type": "boolean"
+              },
+              "perms": {
+                "type": "string",
+                "pattern": "^(0o)?[0-7]{3,4}$"
+              },
+              "mkdir": {
+                "type": "boolean"
+              },
+              "max_size": {
+                "$ref": "#/$defs/size"
+              },
+              "rotate": {
+                "enum": [
+                  "minute",
+                  "hour",
+                  "day",
+                  "week"
+                ]
+              },
+              "keep": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max_age": {
+                "$ref": "#/$defs/duration"
+              },
+              "max_total": {
+                "$ref": "#/$defs/size"
+              },
+              "gzip": {
+                "type": "boolean"
+              },
+              "roll_name": {
+                "type": "string"
+              },
+              "reopen": {
+                "type": "boolean"
+              },
+              "buffer": {
+                "$ref": "#/$defs/size"
+              },
+              "flush_every": {
+                "$ref": "#/$defs/duration"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "loki"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "url"
+            ],
+            "properties": {
+              "kind": true,
+              "name": true,
+              "level": true,
+              "filter": true,
+              "process": true,
+              "layout": true,
+              "format": true,
+              "pattern": true,
+              "schema": true,
+              "keys": true,
+              "levels": true,
+              "nest": true,
+              "colour": true,
+              "colours": true,
+              "alarm_only": true,
+              "on_fail": true,
+              "queue": true,
+              "batch": true,
+              "wait": true,
+              "full": true,
+              "retries": true,
+              "probe": true,
+              "url": {
+                "type": "string",
+                "pattern": "^https?://"
+              },
+              "labels": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "timeout": {
+                "$ref": "#/$defs/duration"
+              },
+              "connect": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "mail"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "host",
+              "to"
+            ],
+            "properties": {
+              "kind": true,
+              "name": true,
+              "level": true,
+              "filter": true,
+              "process": true,
+              "layout": true,
+              "format": true,
+              "pattern": true,
+              "schema": true,
+              "keys": true,
+              "levels": true,
+              "nest": true,
+              "colour": true,
+              "colours": true,
+              "alarm_only": true,
+              "on_fail": true,
+              "queue": true,
+              "batch": true,
+              "wait": true,
+              "full": true,
+              "retries": true,
+              "probe": true,
+              "host": {
+                "type": "string"
+              },
+              "port": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535
+              },
+              "security": {
+                "enum": [
+                  "tls",
+                  "starttls",
+                  "none"
+                ]
+              },
+              "user": {
+                "type": "string"
+              },
+              "pass": {
+                "type": "string"
+              },
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "$ref": "#/$defs/names"
+              },
+              "timeout": {
+                "$ref": "#/$defs/duration"
+              },
+              "connect": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "memory"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [],
+            "properties": {
+              "kind": true,
+              "name": true,
+              "level": true,
+              "filter": true,
+              "process": true,
+              "layout": true,
+              "format": true,
+              "pattern": true,
+              "schema": true,
+              "keys": true,
+              "levels": true,
+              "nest": true,
+              "colour": true,
+              "colours": true,
+              "alarm_only": true,
+              "on_fail": true,
+              "queue": true,
+              "batch": true,
+              "wait": true,
+              "full": true,
+              "retries": true,
+              "probe": true,
+              "size": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ]
+    }
+  }
+}

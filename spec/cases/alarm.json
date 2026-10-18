@@ -1,0 +1,54 @@
+{
+  "about": "Walking an alarm's tiers. `logs` are the sinks on the log route, which `*` stands for; `down` are resting and left out; `results` say what each delivery returns. `tried` lists, per tier that delivered anything, the sinks it delivered to, in any order; `failures` lists the incident's failures in order, the failing sink first.",
+  "cases": [
+    {
+      "name": "the first tier where one sink takes it ends the walk",
+      "logs": ["console-1", "app", "loki"], "failing": "app", "down": [],
+      "tiers": [["*"], ["stderr"]],
+      "results": { "console-1": "ok", "loki": "err", "stderr": "ok" },
+      "tried": [["console-1", "loki"]], "failures": ["app", "loki"], "outcome": "heard"
+    },
+    {
+      "name": "when a whole tier fails the next one gets it",
+      "logs": ["a", "b"], "failing": "a", "down": [],
+      "tiers": [["*"], ["stderr"]],
+      "results": { "b": "err", "stderr": "ok" },
+      "tried": [["b"], ["stderr"]], "failures": ["a", "b"], "outcome": "heard"
+    },
+    {
+      "name": "resting sinks are left out",
+      "logs": [], "failing": "app", "down": ["loki"],
+      "tiers": [["loki", "mail"], ["stderr"]],
+      "results": { "mail": "ok" },
+      "tried": [["mail"]], "failures": ["app"], "outcome": "heard"
+    },
+    {
+      "name": "the failing sink is never asked, and an empty tier is skipped",
+      "logs": [], "failing": "loki", "down": [],
+      "tiers": [["loki"], ["mail"]],
+      "results": { "mail": "ok" },
+      "tried": [["mail"]], "failures": ["loki"], "outcome": "heard"
+    },
+    {
+      "name": "nobody takes it",
+      "logs": [], "failing": "x", "down": [],
+      "tiers": [["a"], ["b"]],
+      "results": { "a": "err", "b": "err" },
+      "tried": [["a"], ["b"]], "failures": ["x", "a", "b"], "outcome": "unheard"
+    },
+    {
+      "name": "a sink tried in an earlier tier is not asked again",
+      "logs": [], "failing": "x", "down": [],
+      "tiers": [["a", "b"], ["b", "c"]],
+      "results": { "a": "err", "b": "err", "c": "ok" },
+      "tried": [["a", "b"], ["c"]], "failures": ["x", "a", "b"], "outcome": "heard"
+    },
+    {
+      "name": "the star expands once and drops the failing sink",
+      "logs": ["x", "a"], "failing": "x", "down": [],
+      "tiers": [["*", "a"]],
+      "results": { "a": "ok" },
+      "tried": [["a"]], "failures": ["x"], "outcome": "heard"
+    }
+  ]
+}

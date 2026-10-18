@@ -1,0 +1,44 @@
+[project]
+name = "serlog"
+version = "0.1.0"
+description = "A modern, high-performance logging framework: any number of sinks, each configured on its own, matching the popular loggers through compat profiles."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.15"
+keywords = ["logging", "logger", "loki", "multi-sink", "structured", "json", "alerting"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.15",
+  "Topic :: System :: Logging",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/LeoHeco/ServerLog"
+Specification = "https://github.com/LeoHeco/ServerLog/tree/main/spec"
+
+[project.optional-dependencies]
+yaml = ["ruamel.yaml>=0.19"]
+
+[dependency-groups]
+dev = ["pytest>=9", "ruff>=0.14", "ruamel.yaml>=0.19", "jsonschema>=4"]
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 150
+target-version = "py315"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PL", "N", "PT"]
+ignore = ["PLR0911", "PLR0912", "PLR0913", "PLR2004", "PLW0603", "PLC0415", "N818", "PT018", "B027"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.pyright]
+pythonVersion = "3.14"

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{app}}: {{count}} {{level}}</title>
+<style>
+body { margin: 0; padding: 24px; background: #f4f5f7; color: #1f2328; font: 14px/1.5 system-ui, sans-serif; }
+.card { max-width: 920px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.head { padding: 16px 20px; color: #fff; }
+.head.trace, .head.debug { background: #57606a; }
+.head.info { background: #1a7f37; }
+.head.warn { background: #9a6700; }
+.head.error { background: #cf222e; }
+.head h1 { margin: 0; font-size: 18px; }
+.head p { margin: 4px 0 0; opacity: .9; }
+table { width: 100%; border-collapse: collapse; }
+td { padding: 8px 12px; border-top: 1px solid #eaeef2; vertical-align: top; font-family: ui-monospace, monospace; font-size: 13px; word-break: break-word; }
+td.warn { color: #9a6700; font-weight: 600; }
+td.error { color: #cf222e; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="card">
+<div class="head {{level}}">
+<h1>{{app}}: {{count}} record(s), worst {{level}}</h1>
+<p>{{env}} {{instance}}</p>
+</div>
+<table>{{rows}}</table>
+</div>
+</body>
+</html>

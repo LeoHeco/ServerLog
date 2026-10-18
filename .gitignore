@@ -1,0 +1,13 @@
+.*
+!.git*
+_*
+!__init__.py
+!__main__.py
+target
+*.lock
+package-lock.json
+pnpm-lock.yaml
+node_modules
+dist
+build
+*.egg-info
