@@ -419,7 +419,12 @@ public final class FileSink extends SinkBase<FileSink> {
         try {
             p = path.toRealPath();
         } catch (IOException e) {
-            p = path.toAbsolutePath().normalize();
+            var abs = path.toAbsolutePath().normalize();
+            try {
+                p = abs.getParent().toRealPath().resolve(abs.getFileName());
+            } catch (IOException | NullPointerException x) {
+                p = abs;
+            }
         }
         var s = p.toString();
         return Optional.of(

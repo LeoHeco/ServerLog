@@ -416,6 +416,8 @@ func (f *File) Claim() string {
 	}
 	if r, err := filepath.EvalSymlinks(p); err == nil {
 		p = r
+	} else if d, err := filepath.EvalSymlinks(filepath.Dir(p)); err == nil {
+		p = filepath.Join(d, filepath.Base(p))
 	}
 	if runtime.GOOS == "windows" {
 		p = strings.ToLower(p)

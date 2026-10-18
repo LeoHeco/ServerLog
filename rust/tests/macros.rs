@@ -108,7 +108,7 @@ fn binds_fields_for_a_scope() {
     let keys: Vec<&str> = inside.fields().iter().map(|(k, _)| k.as_str()).collect();
     assert_eq!(keys, ["request", "user", "extra"]);
     let outside = m.find(|r| r.msg() == "outside").pop().unwrap();
-    assert!(outside.fields().is_empty());
+    assert_eq!(outside.fields(), []);
 }
 
 #[test]

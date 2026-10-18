@@ -267,9 +267,13 @@ export class File implements Sink {
   claim(): string {
     let p: string;
     try {
-      p = realpathSync(this.#path);
+      p = realpathSync.native(this.#path);
     } catch {
-      p = resolve(this.#path);
+      try {
+        p = join(realpathSync.native(dirname(resolve(this.#path))), basename(this.#path));
+      } catch {
+        p = resolve(this.#path);
+      }
     }
     return `file ${process.platform === "win32" ? p.toLowerCase() : p}`;
   }

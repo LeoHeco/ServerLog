@@ -36,7 +36,7 @@ fn both_ecosystems_reach_the_sinks() {
         serlog::set_level(Level::TRACE);
         tracing::debug!("shown");
     });
-    assert!(mem.find(|r| r.msg() == "hidden").is_empty());
+    assert_eq!(mem.find(|r| r.msg() == "hidden").len(), 0);
     assert_eq!(mem.find(|r| r.msg() == "shown").len(), 1);
     let rec = mem.find(|r| r.msg() == "query done").pop().unwrap();
     assert_eq!(rec.field("rows"), Some(&Val::U64(3)));

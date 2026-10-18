@@ -332,6 +332,11 @@ impl Sink for File {
 
     fn claim(&self) -> Option<String> {
         let p = fs::canonicalize(&self.path)
+            .or_else(|e| {
+                let name = self.path.file_name().ok_or(e)?;
+                let dir = self.path.parent().filter(|d| !d.as_os_str().is_empty());
+                fs::canonicalize(dir.unwrap_or(Path::new("."))).map(|d| d.join(name))
+            })
             .or_else(|_| std::path::absolute(&self.path))
             .unwrap_or_else(|_| self.path.clone());
         let s = p.to_string_lossy().into_owned();

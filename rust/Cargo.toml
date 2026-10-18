@@ -2,7 +2,7 @@
 name = "serlog"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.98"
+rust-version = "1.99"
 description = "A modern, high-performance logging framework: any number of sinks, each configured on its own, matching the popular loggers through compat profiles."
 license = "MIT"
 readme = "README.md"

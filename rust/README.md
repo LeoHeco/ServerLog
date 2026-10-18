@@ -137,4 +137,4 @@ tracing_subscriber::registry().with(serlog::Layer).init();      // `tracing`, sp
 | `log`, `tracing` | the bridges |
 | `full` | all of them |
 
-Rust 1.98 or later. MIT licence.
+Rust 1.99 or later. MIT licence.
