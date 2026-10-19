@@ -1,0 +1,226 @@
+:root {
+  --ifm-color-primary: #0065b3;
+  --ifm-color-primary-dark: #005ba1;
+  --ifm-color-primary-darker: #005698;
+  --ifm-color-primary-darkest: #00477d;
+  --ifm-color-primary-light: #006fc5;
+  --ifm-color-primary-lighter: #0074ce;
+  --ifm-color-primary-lightest: #0083e9;
+  --ifm-font-family-base: "Segoe UI Variable Text", "Segoe UI", SegoeUI, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --ifm-font-family-monospace: "Cascadia Code", "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  --ifm-heading-font-family: "Segoe UI Variable Display", "Segoe UI", SegoeUI, system-ui, -apple-system, sans-serif;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.6;
+  --ifm-heading-font-weight: 600;
+  --ifm-h2-font-size: 1.75rem;
+  --ifm-h3-font-size: 1.25rem;
+  --ifm-global-radius: 4px;
+  --ifm-code-border-radius: 4px;
+  --ifm-code-font-size: 88%;
+  --ifm-navbar-height: 3.5rem;
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-background-color: var(--surface);
+  --ifm-background-color: var(--page);
+  --ifm-background-surface-color: var(--surface);
+  --ifm-toc-border-color: var(--line);
+  --ifm-table-border-color: var(--line);
+  --ifm-table-stripe-background: transparent;
+  --ifm-table-head-background: var(--soft);
+  --ifm-menu-color-background-active: var(--soft);
+  --ifm-menu-color-background-hover: var(--soft);
+  --ifm-tabs-padding-vertical: 0.55rem;
+  --ifm-footer-background-color: var(--soft);
+  --docusaurus-highlighted-code-line-bg: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+  --page: #ffffff;
+  --surface: #ffffff;
+  --soft: #f5f5f5;
+  --line: #e3e3e3;
+  --code: #fafafa;
+  --text-subtle: #505050;
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #75b6e7;
+  --ifm-color-primary-dark: #57a6e2;
+  --ifm-color-primary-darker: #489edf;
+  --ifm-color-primary-darkest: #2387d4;
+  --ifm-color-primary-light: #93c6ec;
+  --ifm-color-primary-lighter: #a2ceef;
+  --ifm-color-primary-lightest: #cfe5f6;
+  --page: #171717;
+  --surface: #1f1f1f;
+  --soft: #262626;
+  --line: #383838;
+  --code: #1b1b1b;
+  --text-subtle: #c8c8c8;
+}
+
+.navbar {
+  border-bottom: 1px solid var(--line);
+}
+
+.navbar__title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.navbar-github {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+
+  &::before {
+    content: "";
+    width: 1.25rem;
+    height: 1.25rem;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+
+  &::after {
+    display: none;
+  }
+}
+
+.lang-picker__button {
+  color: var(--ifm-navbar-link-color);
+  font-weight: var(--ifm-font-weight-semibold);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--ifm-global-radius);
+  background: none;
+  padding: 0.3rem 0.7rem;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+
+  &:hover,
+  &[aria-expanded="true"] {
+    border-color: var(--ifm-color-primary);
+    color: var(--ifm-color-primary);
+  }
+}
+
+.lang-option {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lang-picker__title {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-weight: 600;
+}
+
+.markdown {
+  --ifm-h1-vertical-rhythm-bottom: 1;
+
+  & h1 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  &:not(#\#):not(#\#) h1:first-child {
+    --ifm-h1-font-size: 2.4rem;
+  }
+
+  & h2 {
+    margin-top: 2.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  & > p:first-of-type {
+    font-size: 1.1rem;
+    color: var(--text-subtle);
+  }
+
+  & table {
+    display: table;
+    width: 100%;
+    font-size: 0.925rem;
+  }
+
+  & th {
+    text-align: left;
+    font-weight: 600;
+  }
+}
+
+.langs {
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--line);
+
+  & .tabs__item {
+    padding: 0.45rem 0.9rem;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--text-subtle);
+    font-size: 0.925rem;
+    font-weight: 500;
+
+    &:hover {
+      background: none;
+      color: var(--ifm-font-color-base);
+    }
+  }
+
+  & .tabs__item--active {
+    border-bottom-color: var(--ifm-color-primary);
+    color: var(--ifm-font-color-base);
+    font-weight: 600;
+  }
+
+  /* Infima boosts its spacing utilities with two :not(#\#), so match that to win. */
+  & + .margin-top--md:not(#\#):not(#\#) {
+    margin-top: 0 !important;
+  }
+}
+
+.tabs-container:has(> .langs) {
+  margin-bottom: var(--ifm-leading);
+
+  & .theme-code-block {
+    margin-bottom: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}
+
+.theme-code-block {
+  border: 1px solid var(--line);
+  box-shadow: none;
+  --prism-background-color: var(--code) !important;
+}
+
+.theme-doc-toc-desktop {
+  & .table-of-contents::before {
+    content: "In this article";
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+}
+
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 1.25rem 0;
+  font-size: 0.875rem;
+}
+
+@media (width <= 996px) {
+  .lang-picker {
+    display: none;
+  }
+}

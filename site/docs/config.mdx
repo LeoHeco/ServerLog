@@ -1,0 +1,113 @@
+---
+title: Config files
+description: Every key of a serlog config file, environment variables, loading, dumping and reloading.
+---
+
+A config file is YAML, JSON or TOML, checked against [`serlog.schema.json`](https://github.com/LeoHeco/ServerLog/blob/main/spec/serlog.schema.json). Unknown keys are errors that name the key. Code and config share keys: every key has a setter of the same name, and a config entry passes to code as a dictionary or options object.
+
+```yaml title="serlog.yaml"
+app: mirror
+env: prod
+compat: serlog
+filter: info,hustsync=debug
+levels: { notice: { value: 35, colour: blue } }
+process: [{ fields: { region: cn } }]
+redact: [pass, token]
+watch: 30s
+sinks:
+  - kind: console
+  - { kind: file, name: app, path: /var/log/app.log, max_size: 64MiB, keep: 7, gzip: true }
+  - { kind: loki, url: "http://alloy:3100/loki/api/v1/push", on_fail: ops }
+  - { kind: mail, name: oncall, alarm_only: true, host: smtp.example.org, user: bot@example.org, pass: "${SMTP_PASS}", to: [ops@example.org] }
+alarms:
+  ops: { tiers: [[oncall], [stderr]], on_fail: panic, remind: 30m }
+```
+
+## Keys
+
+| Key | Value |
+|:--|:--|
+| `app`, `env`, `instance` | identity; the program name, empty and the host name by default |
+| `compat` | a [profile](compat) |
+| `level`, `filter`, `filter_env` | the default level, [filter directives](processors#filters), a variable that overrides them |
+| `levels` | custom levels: a value, or `value` and `colour` |
+| `process`, `redact` | the global [processor](processors) chain; masking shorthand |
+| `sinks` | the [sinks](sinks), each with `kind`, slot settings and its own keys |
+| `alarms` | named alarms; `default` replaces the default; each takes `kind` (default `tiers`), `tiers`, `on_fail` (`panic` or `ignore`), `remind` |
+| `watch` | how often to check the file for changes |
+
+A sink's `on_fail` is `panic`, `ignore`, `default` or a name in `alarms`. A processor in a list is its name, or a map from its name to its options.
+
+## Values
+
+- `${NAME}` in any string is the environment variable `NAME`; an unset one is an error.
+- Durations are seconds or carry `ms`, `s`, `m`, `h` or `d`: `250ms`, `30m`.
+- Sizes are bytes or carry `KB`, `MB`, `GB`, `KiB`, `MiB` or `GiB`.
+
+## Environment
+
+| Variable | Effect |
+|:--|:--|
+| `SERLOG_CONFIG` | the file `init` reads |
+| `SERLOG_FILTER` | overrides the filter; Rust also reads `RUST_LOG` |
+| `SERLOG_COMPAT` | overrides the compat profile |
+| `SERLOG_FORMAT` | the zero-config console's format |
+| `NO_COLOR`, `FORCE_COLOR` | turn colour off or on |
+
+## Load, dump, reload
+
+`load` starts from a file, the format from its extension, and reloads it when `watch` is set; the new config replaces the old one only when all of it passes, otherwise the error goes to `stderr` and the old one stays. Loading text works the same without reloading. `dump` writes the settings in force; loading the result behaves the same, except that passwords come out as `***`.
+
+<Langs>
+<Rust>
+
+```rust
+use serlog::config::{self, Format};
+
+let _log = config::load("serlog.yaml")?;
+let _log = config::load_str(text, Format::Yaml)?;
+let yaml = config::dump(Format::Yaml)?;
+```
+
+`config::from_value` builds from a table inside another program's config; `config::slot` turns one sink entry into a slot for `serlog::add`. Needs the `config` feature.
+
+</Rust>
+<Python>
+
+```python
+serlog.load("serlog.yaml")
+serlog.loads(text)                  # YAML by default; "json" or "toml" as the second argument
+yaml = serlog.dump("yaml")
+```
+
+</Python>
+<TypeScript>
+
+```ts
+await serlog.load("serlog.yaml");
+await serlog.loads(text);           // YAML by default; "json" or "toml" as the second argument
+const yaml = await serlog.dump("yaml");
+```
+
+</TypeScript>
+<Java>
+
+```java
+Config.load(Path.of("serlog.yaml"));
+Config.loads(text, Format.YAML);
+String yaml = Config.dump(Format.YAML);
+```
+
+</Java>
+<Go>
+
+```go
+err := serlog.Load("serlog.yaml")
+err = serlog.Loads(text, serlog.FormatYAML)
+yaml, err := serlog.Dump(serlog.FormatYAML)
+```
+
+`serlog.Parse(tree)` turns a config map into a `Config`.
+
+</Go>
+</Langs>

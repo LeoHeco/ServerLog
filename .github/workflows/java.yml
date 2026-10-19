@@ -28,6 +28,11 @@ jobs:
           java-version: "25"
           cache: maven
       - run: mvn -B spotless:check verify
+      - name: Phone example
+        if: runner.os == 'Linux'
+        run: |
+          mvn -B -q dependency:build-classpath -Dmdep.outputFile=target/cp.txt
+          java -cp "target/classes:$(cat target/cp.txt)" examples/Phone.java | diff examples/Phone.out -
 
   publish:
     needs: check

@@ -1,0 +1,108 @@
+---
+title: Sinks and slots
+description: The built-in sinks, their keys, and the slot settings every sink takes.
+---
+
+A sink delivers; the slot around it decides what reaches it and how. Every sink takes the slot settings next to its own keys, in code and in config files alike.
+
+## Slot settings
+
+| Key | Value |
+|:--|:--|
+| `name` | unique; kind and number by default |
+| `level`, `filter` | what this slot lets through, on top of the global filter |
+| `process` | processors run for this slot only |
+| `format`, `pattern`, `schema`, `keys`, `levels`, `nest` | the [layout](layouts) |
+| `colour`, `colours` | `auto`, `always` or `never`; other colours per level |
+| `alarm_only` | only the alarm route writes here |
+| `on_fail` | `panic`, `ignore`, `default` or a named alarm |
+| `queue`, `batch`, `wait`, `full` | queue length (`0` writes directly), batch size, how long to wait for a batch, `drop` or `block` when full |
+| `retries`, `probe` | attempts per write; the first wait before probing a sink that is down |
+
+## Built-in sinks
+
+| Kind | Checked at registration | Claims | Default queue | Default layout |
+|:--|:--|:--|:--|:--|
+| `console` | nothing | nothing | direct | profile |
+| `file` | makes the directory, opens the file | its absolute path | direct | profile |
+| `loki` | the URL; with `connect`, `GET /ready` | nothing | 8192, 1000 a batch or 1 s | `{msg}` |
+| `mail` | recipients, a sender, a password for a user; with `connect`, logs in | nothing | 1024, 1000 a batch or 60 s | profile, for the plain text |
+| `memory` | nothing | nothing | direct | profile |
+
+Two sinks cannot claim the same file. A refused registration names the sink and why.
+
+### console
+
+`stream` is `stdout` (default), `stderr` or `auto`, which sends `error` and above to standard error.
+
+### file
+
+| Key | Value |
+|:--|:--|
+| `path` | the file |
+| `append`, `perms`, `mkdir` | append (default) or truncate; mode of a new file such as `"0640"`; create the directory (default) |
+| `max_size`, `rotate` | roll by size, or at `minute`, `hour`, `day` or `week` on local time |
+| `keep`, `max_age`, `max_total` | clean-up, oldest first |
+| `gzip` | compress rolled files in the background |
+| `roll_name` | default `{stem}.{time:%Y%m%d-%H%M%S}.{ext}`, with `-1`, `-2` added when taken |
+| `reopen` | check once a second whether the file was moved, truncated or deleted |
+| `buffer`, `flush_every` | buffer writes; `error` and above flush at once |
+
+### loki
+
+`url`, `labels`, `timeout`, `connect`. Stream labels are `app`, `env`, `instance`, `level` and `labels`; `target`, `file` and the fields travel as structured metadata. Network errors, 429 and 5xx are retried; other 4xx refuse the batch. Alloy's `loki.source.api` takes the same pushes.
+
+### mail
+
+`host`, `port`, `security` (`tls`, `starttls` or `none`), `user`, `pass`, `from`, `to`, `timeout`, `connect`. Only `error` and above unless the slot sets a level or filter. Batches go out as one message.
+
+### memory
+
+`size`, the newest records kept. Read back records and lines, find, clear: meant for tests.
+
+## At run time
+
+<Langs>
+<Rust>
+
+```rust
+let name = serlog::add(File::new("logs/extra.log").name("extra"))?;
+serlog::remove(&name);
+```
+
+</Rust>
+<Python>
+
+```python
+name = serlog.add(serlog.File("logs/extra.log"), name="extra")
+serlog.remove(name)
+```
+
+</Python>
+<TypeScript>
+
+```ts
+const name = await serlog.add(new serlog.File({ path: "logs/extra.log", name: "extra" }));
+await serlog.remove(name);
+```
+
+</TypeScript>
+<Java>
+
+```java
+String name = Serlog.add(new FileSink("logs/extra.log").name("extra"));
+Serlog.remove(name);
+```
+
+</Java>
+<Go>
+
+```go
+name, err := serlog.Add(&serlog.File{Slot: serlog.Slot{Name: "extra"}, Path: "logs/extra.log"})
+serlog.Remove(name)
+```
+
+</Go>
+</Langs>
+
+Removing a slot writes what its queue holds, stops its task and closes its sink. To make a sink of your own, see [Write your own sink](guides/phone).

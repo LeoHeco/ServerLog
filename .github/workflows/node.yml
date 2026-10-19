@@ -29,6 +29,9 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: npm test
+      - name: Phone example
+        if: runner.os == 'Linux'
+        run: node examples/phone.ts | diff examples/phone.out -
 
   publish:
     needs: check

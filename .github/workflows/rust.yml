@@ -32,6 +32,9 @@ jobs:
       - run: cargo clippy --all-targets --all-features -- -D warnings
       - run: cargo clippy --all-targets --no-default-features -- -D warnings
       - run: cargo test --all-features
+      - name: Phone example
+        if: runner.os == 'Linux'
+        run: cargo run -q --example phone --features config | diff examples/phone.out -
 
   publish:
     needs: check

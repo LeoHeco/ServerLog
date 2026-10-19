@@ -1,0 +1,233 @@
+---
+title: Get started
+description: Set-up from a file or from code, several sinks, and records with fields.
+---
+
+Without set-up, `info` and above go to standard output. Everything else is one call at start-up, from a file or from code; both take the same keys.
+
+## From a file
+
+`init` with no arguments reads the file named by `SERLOG_CONFIG`, or the first of `serlog.yaml`, `serlog.yml`, `serlog.json` and `serlog.toml` in the working directory. Without one it starts a console sink.
+
+```yaml title="serlog.yaml"
+app: mirror
+filter: info,hustsync=debug
+sinks:
+  - kind: console
+  - { kind: file, name: app, path: logs/app.log, rotate: day, keep: 7, gzip: true }
+  - { kind: loki, url: "http://alloy:3100/loki/api/v1/push", labels: { team: mirrors } }
+```
+
+<Langs>
+<Rust>
+
+```rust
+fn main() -> serlog::Result {
+    let _log = serlog::init()?;
+    serlog::info!(mirror = "debian", tries = 3, "synced");
+    Ok(())
+}
+```
+
+Keep the returned guard: queued records are written when it drops.
+
+</Rust>
+<Python>
+
+```python
+serlog.init()
+```
+
+</Python>
+<TypeScript>
+
+```ts
+await serlog.init();
+```
+
+</TypeScript>
+<Java>
+
+```java
+Serlog.init();
+```
+
+</Java>
+<Go>
+
+```go
+if err := serlog.Init(serlog.Config{}); err != nil {
+	panic(err)
+}
+defer serlog.Flush()
+```
+
+</Go>
+</Langs>
+
+## From code
+
+Every sink takes its slot settings alongside its own: `name`, `level` or `filter`, `process`, `format`, `pattern`, `schema`, `colour`, `alarm_only`, `on_fail`, `queue`, `retries`, `probe`. Names default to the kind and a number: `file-1`, `file-2`.
+
+<Langs>
+<Rust>
+
+```rust
+use serlog::{OnFail, SinkExt, Tiers, sinks::{Console, File, Loki, Mail, Rotate}};
+
+let _log = serlog::builder()
+    .app("mirror")
+    .sink(Console::new())
+    .sink(File::new("logs/app.log").rotate(Rotate::Day).keep(7).gzip().name("app"))
+    .sink(File::new("logs/audit.log").filter("audit=info".parse()?).on_fail(OnFail::Panic))
+    .sink(Loki::new("http://alloy:3100/loki/api/v1/push").label("team", "mirrors"))
+    .sink(Mail::new("smtp.example.org").auth("bot@example.org", pass).to("ops@example.org").name("oncall").alarm_only())
+    .alarm(Tiers::new([["oncall"], ["stderr"]]))
+    .init()?;
+```
+
+</Rust>
+<Python>
+
+```python
+serlog.init(
+    app="mirror",
+    sinks=[
+        serlog.Console(),
+        serlog.File("logs/app.log", rotate="day", keep=7, gzip=True, name="app"),
+        serlog.File("logs/audit.log", filter="audit=info", on_fail="panic"),
+        serlog.Loki("http://alloy:3100/loki/api/v1/push", labels={"team": "mirrors"}),
+        serlog.Mail("smtp.example.org", user="bot@example.org", password=pw, to="ops@example.org", name="oncall", alarm_only=True),
+    ],
+    alarms={"default": serlog.Tiers([["oncall"], ["stderr"]])},
+)
+```
+
+A config entry passes straight in: `serlog.File(**entry)`, `serlog.init(**tree)`.
+
+</Python>
+<TypeScript>
+
+```ts
+await serlog.init({
+  app: "mirror",
+  sinks: [
+    new serlog.Console(),
+    new serlog.File({ path: "logs/app.log", rotate: "day", keep: 7, gzip: true, name: "app" }),
+    new serlog.File({ path: "logs/audit.log", filter: "audit=info", onFail: "panic" }),
+    new serlog.Loki({ url: "http://alloy:3100/loki/api/v1/push", labels: { team: "mirrors" } }),
+    new serlog.Mail({ host: "smtp.example.org", user: "bot@example.org", pass, to: "ops@example.org", name: "oncall", alarmOnly: true }),
+  ],
+  alarms: { default: new serlog.Tiers({ tiers: [["oncall"], ["stderr"]] }) },
+});
+```
+
+Keys are camel case; `init` also takes a parsed config tree as it is.
+
+</TypeScript>
+<Java>
+
+```java
+Serlog.builder()
+        .app("mirror")
+        .sink(new ConsoleSink())
+        .sink(new FileSink("logs/app.log").rotate(FileSink.Rotate.DAY).keep(7).gzip(true).name("app"))
+        .sink(new FileSink("logs/audit.log").filter("audit=info").onFail("panic"))
+        .sink(new LokiSink("http://alloy:3100/loki/api/v1/push").labels(Map.of("team", "mirrors")))
+        .sink(new MailSink("smtp.example.org").login("bot@example.org", pass).to("ops@example.org").name("oncall").alarmOnly(true))
+        .alarm("default", Tiers.of("oncall", "stderr"))
+        .init();
+```
+
+`Slot.of(sink).name("audit").queue(1000)` puts any sink, a lambda included, in a slot.
+
+</Java>
+<Go>
+
+```go
+err := serlog.Init(serlog.Config{
+	App: "mirror",
+	Sinks: []serlog.Sink{
+		&serlog.Console{},
+		&serlog.File{Slot: serlog.Slot{Name: "app"}, Path: "logs/app.log", Rotate: "day", Keep: 7, Gzip: true},
+		&serlog.File{Slot: serlog.Slot{Filter: "audit=info", OnFail: "panic"}, Path: "logs/audit.log"},
+		&serlog.Loki{URL: "http://alloy:3100/loki/api/v1/push", Labels: map[string]string{"team": "mirrors"}},
+		&serlog.Mail{Slot: serlog.Slot{Name: "oncall", AlarmOnly: true}, Host: "smtp.example.org", User: "bot@example.org", Pass: pass, To: []string{"ops@example.org"}},
+	},
+	Alarms: map[string]serlog.Alarm{"default": &serlog.Tiers{Tiers: [][]string{{"oncall"}, {"stderr"}}}},
+})
+```
+
+`serlog.With(sink, serlog.Slot{...})` puts any sink, a `serlog.SinkFunc` included, in a slot.
+
+</Go>
+</Langs>
+
+## Records
+
+A record has a level, a target, a message, typed fields and tags. Fields stay typed: numbers stay numbers in JSON, maps nest, errors carry their causes. Fields bound to a scope reach every record made inside it.
+
+<Langs>
+<Rust>
+
+```rust
+serlog::warn!(target: "sync", tags: ["disk"], mirror = %name, free = 0.09, ?state, "disk {}% full", 91);
+let _g = serlog::bind!(request = id);
+serlog::error!(error = serlog::err(&e), "gave up");
+serlog::fatal!("cannot go on");
+```
+
+Arguments are not evaluated below the level. `%` formats with `Display`, `?` with `Debug`.
+
+</Rust>
+<Python>
+
+```python
+log = serlog.get("app.sync", mirror="debian")
+log.error("gave up after {} tries", 3, tags=["sync"])
+with serlog.bind(request=7):                   # across threads and asyncio tasks
+    log.info("handled")
+log.exception("parse failed")                  # inside `except`
+serlog.warn(t"disk {used:.0%} full")          # t-strings: interpolations become fields
+```
+
+`serlog.lazy(fn)` defers work until a record passes.
+
+</Python>
+<TypeScript>
+
+```ts
+const log = serlog.get("app.sync", { mirror: "debian" });
+log.error({ tags: ["sync"], tries: 3 }, "gave up");
+await serlog.bind({ request: 7 }, async () => log.info("handled"));   // across awaits and callbacks
+log.exception(err, "parse failed");
+```
+
+`serlog.lazy(fn)` defers work until a record passes.
+
+</TypeScript>
+<Java>
+
+```java
+var log = Serlog.get(Sync.class).with("mirror", "debian");
+log.atWarn().field("tries", 3).tag("sync").log("gave up after {} tries", 3);
+log.error("rsync failed", e);                      // a trailing throwable becomes the `error` field
+Serlog.bind(Map.of("request", 7), () -> log.info("handled"));
+```
+
+A `Supplier` argument is called only when the record passes.
+
+</Java>
+<Go>
+
+```go
+log := serlog.Get("app.sync", "mirror", "debian") // a *slog.Logger
+log.Warn("gave up", "tries", 3, serlog.Tags("sync"), serlog.Err(err))
+ctx = serlog.Bind(ctx, "request", 7)
+log.InfoContext(ctx, "handled")
+```
+
+`slog.LogValuer` values are worked out only when the record passes.
+
+</Go>
+</Langs>

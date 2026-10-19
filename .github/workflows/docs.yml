@@ -1,0 +1,58 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths: ["site/**", "*/examples/**", "python/src/**", "node/src/**", ".github/workflows/docs.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "26"
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.15"
+      - name: Site
+        working-directory: site
+        run: |
+          npm install --no-audit --no-fund
+          npm run check
+          npm run build
+      - name: Python API
+        working-directory: python
+        run: uv run --with pdoc pdoc serlog -o ../site/build/api/python
+      - name: TypeScript API
+        working-directory: node
+        # TypeDoc reads sources through the TypeScript 6 compiler API, which TypeScript 7 no longer ships.
+        run: |
+          npm install --no-audit --no-fund
+          npx -y -p typedoc@0.28 -p typescript@6.0 typedoc --out ../site/build/api/typescript src/index.ts
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site/build
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-26.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

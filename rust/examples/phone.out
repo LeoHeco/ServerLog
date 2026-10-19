@@ -1,0 +1,8 @@
+refused: bad config: cannot text call me maybe
+INFO  synced mirror=debian files=42
+WARN  disk nearly full mirror=debian free=9%
+sms 13800138000: WARN disk nearly full
+ERROR sync failed mirror=debian tries=3
+sms 13800138000: ERROR sync failed
+console-1: console, up
+oncall: phone, up

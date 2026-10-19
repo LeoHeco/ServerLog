@@ -26,9 +26,12 @@ jobs:
         with:
           python-version: "3.15"
       - run: uv sync
-      - run: uv run ruff format --check src tests
-      - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests examples
+      - run: uv run ruff check src tests examples
       - run: uv run pytest -q
+      - name: Phone example
+        if: runner.os == 'Linux'
+        run: uv run --extra yaml python examples/phone.py | diff examples/phone.out -
 
   publish:
     needs: check

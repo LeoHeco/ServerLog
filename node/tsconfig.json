@@ -15,7 +15,8 @@
     "rewriteRelativeImportExtensions": true,
     "declaration": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": { "serlog": ["./src/index.ts"] }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "examples"]
 }

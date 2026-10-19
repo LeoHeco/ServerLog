@@ -97,3 +97,7 @@ module_name_repetitions = "allow"
 
 [package.metadata.docs.rs]
 all-features = true
+
+[[example]]
+name = "phone"
+required-features = ["config"]

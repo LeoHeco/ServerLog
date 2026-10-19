@@ -1,0 +1,91 @@
+---
+title: Filters and processors
+description: Which records pass, and how they are changed on the way.
+---
+
+The global filter and processors run once per record in the hub; each slot can add its own. A processor that only decides does not copy the record, and the first one to change it makes a copy, so other slots still see the original.
+
+## Filters
+
+Comma-separated directives, as in `RUST_LOG`:
+
+| Directive | Meaning |
+|:--|:--|
+| `info` | the default level |
+| `app=debug` | target `app` and everything under it |
+| `app` | everything for `app` |
+| `app=off` | nothing for `app` |
+| `web:*=error` | `*` matches any characters |
+| `info/sync` | after the first `/`, a regex the message must match |
+
+A target is matched with the parts under it, split at `::`, `.`, `:` or `/`. The most specific directive wins: literal targets by length, then wildcard ones by literal length. Targets no directive matches are off unless there is a default level.
+
+## Processors
+
+| Step | Options | Effect |
+|:--|:--|:--|
+| `redact` | `keys`, `paths`, `patterns`, `mask` | masks fields with these names at any depth and at these dotted paths, `***` by default; replaces regex matches in the message |
+| `sanitise` | | escapes line breaks, tabs and control characters |
+| `fields` | key-value pairs | sets these fields on every record |
+| `match` | `tags`, `fields`, `level` | keeps the record only when every condition holds |
+| `exclude` | the same | drops the record when every condition holds |
+| `sample` | `first`, `every`, `per` | per level and message, keeps the first `first` in each `per`, then one in `every` |
+| `limit` | `rate`, `burst` | a token bucket of `rate` a second holding up to `burst` |
+| `dedupe` | `within` | drops repeats kept within `within`; the next one kept carries `repeated` |
+
+Top-level `redact: [pass, token]` is short for a `redact` step with those keys.
+
+<Langs>
+<Rust>
+
+```rust
+use serlog::process::{Dedupe, Fields, Redact, Sample};
+
+serlog::builder()
+    .process(Fields::new().with("region", "cn"))
+    .process(Redact::keys(["pass", "token"]).path("req.headers.authorization"))
+    .sink(Console::new().process(Sample::new(100, 10, Duration::from_secs(1))).process(Dedupe::new(Duration::from_secs(5))));
+```
+
+</Rust>
+<Python>
+
+```python
+serlog.init(process=[serlog.Fields(region="cn"), serlog.Redact(["pass"], paths=["req.headers.authorization"])])
+serlog.Console(process=[serlog.Sample(100, 10, "1s"), serlog.Dedupe("5s")])
+```
+
+Any function taking a record and returning it, a changed copy or `None` is a processor.
+
+</Python>
+<TypeScript>
+
+```ts
+await serlog.init({ process: [new serlog.Fields({ region: "cn" }), new serlog.Redact({ keys: ["pass"], paths: ["req.headers.authorization"] })] });
+new serlog.Console({ process: [new serlog.Sample({ first: 100, every: 10, per: "1s" }), new serlog.Dedupe({ within: "5s" })] });
+```
+
+Any function taking a record and returning it, a changed copy or `null` is a processor.
+
+</TypeScript>
+<Java>
+
+```java
+Serlog.builder().process(new Fields(Map.of("region", "cn"))).process(Redact.keys("pass").paths("req.headers.authorization")).init();
+new ConsoleSink().process(new Sample(100, 10, Duration.ofSeconds(1)), new Dedupe(Duration.ofSeconds(5)));
+```
+
+Any lambda taking a record and returning it, a changed copy or `null` is a processor.
+
+</Java>
+<Go>
+
+```go
+serlog.Config{Process: []serlog.Processor{serlog.Fields{"region": "cn"}, &serlog.Redact{Keys: []string{"pass"}, Paths: []string{"req.headers.authorization"}}}}
+serlog.Slot{Process: []serlog.Processor{&serlog.Sample{First: 100, Every: 10, Per: time.Second}, &serlog.Dedupe{Within: 5 * time.Second}}}
+```
+
+A `serlog.ProcessorFunc` returning the record, a changed copy or `nil` is a processor.
+
+</Go>
+</Langs>

@@ -1,0 +1,59 @@
+---
+title: From other loggers
+description: Route each language's standard logging and uncaught errors through serlog.
+---
+
+Libraries keep logging the way they always did; one call at start-up sends their records through serlog's filters, processors and sinks.
+
+<Langs>
+<Rust>
+
+```rust
+serlog::Bridge::install()?;                                     // the `log` crate
+tracing_subscriber::registry().with(serlog::Layer).init();      // `tracing`, span chain included
+serlog::catch_panics();                                         // every panic at `fatal`
+```
+
+The bridges need the `log` and `tracing` features. `{spans}` in a pattern shows the span chain.
+
+</Rust>
+<Python>
+
+```python
+serlog.capture()            # the standard `logging` module and `warnings`
+serlog.catch_uncaught()     # uncaught exceptions at `fatal`
+```
+
+`@serlog.catch` on a function, or `with serlog.catch():`, logs what it raises.
+
+</Python>
+<TypeScript>
+
+```ts
+using _ = serlog.capture();   // `console`, until the scope ends
+serlog.catchUncaught();       // uncaught errors and rejections at `fatal`
+```
+
+The `DEBUG` namespaces of the `debug` package are honoured as a filter.
+
+</TypeScript>
+<Java>
+
+With serlog on the class path, SLF4J 2 writes through it: MDC entries and key-value pairs become fields, markers become tags. JUL and the Log4j API come in through `jul-to-slf4j` and `log4j-to-slf4j`.
+
+```java
+Serlog.catchUncaught();     // uncaught exceptions at `fatal`
+```
+
+</Java>
+<Go>
+
+```go
+serlog.Capture()            // slog's default handler, so `slog` and `log` write through serlog
+logger := slog.New(serlog.Handler("app"))
+```
+
+serlog is a `log/slog` handler: attributes, groups and `slog.LogValuer` work as they do anywhere else. Inside a sink, log with `entry.Context()` so what it logs is dropped instead of looping back.
+
+</Go>
+</Langs>

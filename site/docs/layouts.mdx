@@ -1,0 +1,116 @@
+---
+title: Layouts
+description: Patterns, logfmt, pretty and JSON in ten schemas, and colour.
+---
+
+A layout turns a record into the line a sink writes. Each slot has its own, so the console can be readable while the file holds JSON for a collector.
+
+| `format` | Output |
+|:--|:--|
+| `text` | a pattern; the profile's pattern unless `pattern` is given |
+| `logfmt` | `time=2023-11-14T22:13:20Z level=warn target=app msg="…" key=value` |
+| `json` | an object in a schema |
+| `pretty` | time, level, target and message, then one aligned `key = value` line per field |
+
+<Langs>
+<Rust>
+
+```rust
+use serlog::{Layout, layout::Schema};
+
+File::new("app.json").layout(Layout::json(Schema::Ecs));
+Console::new().layout(Layout::pattern("{time:utc} {level:<5} {target:~20}: {msg}{fields}")?);
+Console::new().layout(Layout::Pretty);
+```
+
+</Rust>
+<Python>
+
+```python
+serlog.File("app.json", format="json", schema="ecs")
+serlog.Console(pattern="{time:utc} {level:<5} {target:~20}: {msg}{fields}")
+serlog.Console(format="pretty")
+```
+
+</Python>
+<TypeScript>
+
+```ts
+new serlog.File({ path: "app.json", format: "json", schema: "ecs" });
+new serlog.Console({ pattern: "{time:utc} {level:<5} {target:~20}: {msg}{fields}" });
+new serlog.Console({ format: "pretty" });
+```
+
+</TypeScript>
+<Java>
+
+```java
+new FileSink("app.json").format("json").schema(JsonLayout.Schema.ECS);
+new ConsoleSink().pattern("{time:utc} {level:<5} {target:~20}: {msg}{fields}");
+new ConsoleSink().format("pretty");
+```
+
+</Java>
+<Go>
+
+```go
+&serlog.File{Slot: serlog.Slot{Format: "json", Schema: "ecs"}, Path: "app.json"}
+&serlog.Console{Slot: serlog.Slot{Pattern: "{time:utc} {level:<5} {target:~20}: {msg}{fields}"}}
+&serlog.Console{Slot: serlog.Slot{Format: "pretty"}}
+```
+
+</Go>
+</Langs>
+
+## Patterns
+
+Literal text with `{token}` or `{token:options}` holes; `{{` and `}}` are literal braces. Every token but `time` may end with `<N`, `>N` or `^N` to pad to N columns, then `.M` to keep at most M characters.
+
+| Token | Options | Output |
+|:--|:--|:--|
+| `time` | `local` (default), `utc`, `rfc3339`, `unix`, `unix_ms`, `unix_ns`, or strftime | `2023-11-14 23:13:20.000`, `2023-11-14T22:13:20Z` |
+| `level` | `lower` | `WARN`, `warn` |
+| `target` | `~N` shortens leading segments to their first letter until it fits | `a::sync` |
+| `module`, `func`, `file`, `line` | `base` keeps the file name | the caller; `?` when unknown |
+| `thread`, `tid`, `task` | | thread name, thread id, async task name |
+| `pid`, `host`, `app`, `env`, `instance` | | process and deployment identity |
+| `msg`, `fields` | `q` quotes the logfmt way | the message; ` key=value` for each field |
+| `tags` | | comma-separated |
+| `error` | `stack` | the `error` field with its causes |
+| `elapsed`, `seq` | | milliseconds since start; the record's number |
+| `spans` | | the span chain and `: ` |
+
+A preset name stands wherever a pattern is expected, and shows levels the way its logger does.
+
+| Preset | Pattern | Matches |
+|:--|:--|:--|
+| `serlog` | `{time} {level:<5} {target}: {msg}{fields}` | the default |
+| `tracing` | `{time:rfc3339} {level:>5} {spans}{target}: {msg}{fields}` | `tracing-subscriber` |
+| `env_logger` | `[{time:utc} {level:<5} {target}] {msg}` | `env_logger` |
+| `python` | `{level}:{target}:{msg}` | `logging.basicConfig` |
+| `logback` | `{time:%H:%M:%S%.3f} [{thread}] {level:<5} {target:~36} - {msg}` | Logback, Log4j 2 |
+| `slog` | `time={time:%Y-%m-%dT%H:%M:%S%.3f%:z} level={level} msg={msg:q}{fields:q}` | Go `slog.TextHandler` |
+| `pino` | `[{time:%H:%M:%S%.3f}] {level} ({pid}): {msg}{fields}` | `pino-pretty` |
+
+## JSON schemas
+
+`[fields]` marks where the fields go.
+
+| Schema | Keys |
+|:--|:--|
+| `serlog` | `time`, `level`, `target`, `msg`, `file`, `line`, [fields], `app`, `env`, `instance` |
+| `pino` | `level` value, `time` Unix ms, `pid`, `hostname`, [fields, error as `err`], `msg` |
+| `bunyan` | `name`, `hostname`, `pid`, `level` value, [fields, error as `err`], `msg`, `time`, `v` |
+| `zap` | `level`, `ts`, `logger`, `caller`, `msg`, [fields] |
+| `slog` | `time`, `level`, `msg`, [fields] |
+| `structlog` | `event`, [fields], `level`, `logger`, `timestamp` |
+| `logstash` | `@timestamp`, `@version`, `message`, `logger_name`, `thread_name`, `level`, `level_value`, [fields, error as `stack_trace`] |
+| `ecs` | `@timestamp`, `log.level`, `message`, `ecs.version`, `log.logger`, `log.origin.*`, `process.pid`, `host.hostname`, `service.*`, [fields] |
+| `gelf` | `version`, `host`, `short_message`, `timestamp`, `level` syslog severity, `_target`, fields prefixed with `_` |
+| `otel` | `timestamp`, `severity_text`, `severity_number`, `body`, `attributes`, `resource` |
+
+`keys` renames any key, `levels` writes levels as `name` or `number`, and `nest` puts the fields under one key.
+
+## Colour
+
+`colour` is `auto`, `always` or `never`. `auto` colours a terminal, never when `NO_COLOR` is set, always when `FORCE_COLOR` is set. `colours` gives levels other colours: `plain`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `grey`, `alarm`. Patterns colour the level; `pretty` also greys the time and colours field names.

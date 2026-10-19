@@ -1,0 +1,56 @@
+---
+title: Compat profiles
+description: Output that matches the logger a project used before.
+---
+
+A profile changes the default pattern, the console's stream, the default level and the filter variables together, so a program moving to serlog keeps its output and its operators keep their habits.
+
+| Profile | Stream | Level | Variables | Levels shown as |
+|:--|:--|:--|:--|:--|
+| `serlog` | stdout | info | `SERLOG_FILTER`, and `RUST_LOG` in Rust | `TRACE` … `FATAL` |
+| `tracing` | stdout | info | `RUST_LOG` | `TRACE` … `FATAL` |
+| `env_logger` | stderr | error | `RUST_LOG` | `TRACE` … `FATAL` |
+| `python` | stderr | warn | | `WARNING`, `CRITICAL` |
+| `logback` | stdout | debug | | `TRACE` … `FATAL` |
+| `slog` | stdout | info | | `DEBUG-4`, `ERROR+4` |
+| `pino` | stdout | info | | `TRACE` … `FATAL` |
+
+<Langs>
+<Rust>
+
+```rust
+serlog::builder().compat(Compat::EnvLogger).init()?;   // env_logger's pattern, stderr, `error`, RUST_LOG
+```
+
+</Rust>
+<Python>
+
+```python
+serlog.init(compat="python")                       # WARNING:app:msg on standard error, warn and above
+```
+
+</Python>
+<TypeScript>
+
+```ts
+await serlog.init({ compat: "pino" });
+```
+
+</TypeScript>
+<Java>
+
+```java
+Serlog.builder().compat(Compat.LOGBACK).init();
+```
+
+</Java>
+<Go>
+
+```go
+serlog.Init(serlog.Config{Compat: serlog.CompatSlog})
+```
+
+</Go>
+</Langs>
+
+`SERLOG_COMPAT` overrides the profile without touching code.

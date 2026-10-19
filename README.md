@@ -2,6 +2,8 @@
 
 A modern, high-performance logging framework: any number of sinks, each configured on its own, a drop-in match for the popular loggers of each language through compat profiles.
 
+Documentation: https://leoheco.github.io/ServerLog/
+
 | Language | Package | Directory |
 |:--:|:--:|:--:|
 | Rust | crates.io `serlog` | `rust/` |

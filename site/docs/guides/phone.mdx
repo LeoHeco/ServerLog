@@ -1,0 +1,60 @@
+---
+title: Write your own sink
+description: A phone sink from definition to use, in every language.
+---
+
+A sink only delivers; its slot brings the queue, retries, health and alarms. This page builds a sink that texts warnings and errors to a phone, registers it for config files, configures it and uses it. The code is taken from the example programs that run in CI, so it compiles and its output is checked.
+
+## Stand-ins
+
+`foo_phone_is_ok` and `foo_use_phone_to_log` stand for your phone service. Everything else on this page is the real API.
+
+<Example name="phone" region="stubs" />
+
+## Define the sink
+
+The sink holds a number, given as an integer or as text, and checks it when it is made: no number, or one the service rejects, is an error at once rather than at the first warning. Delivering is one call; `entry.line` is the record already laid out by the slot.
+
+<Example name="phone" region="sink" />
+
+## Register the kind
+
+Registering lets config files name the sink with `kind: phone`. The factory receives the entry's own keys, here `phone`; slot keys such as `name`, `level` and `pattern` are taken off first and applied by the slot.
+
+<Example name="phone" region="register" />
+
+## Refuse a bad number
+
+<Example name="phone" region="refuse" />
+
+## Configure it
+
+Two sinks: the console takes everything from `info` up, the phone only `warn` and above, each with its own pattern. The same text works as a file passed to `load`, and the same keys work in code.
+
+<Example name="phone" region="config" />
+
+## Log
+
+Nothing about the phone appears here: the records go to every slot, and the phone's slot lets through only what it is configured for.
+
+<Example name="phone" region="use" />
+
+## Check its health
+
+Each slot reports its name, kind and health, with counts of what it skipped or dropped.
+
+<Example name="phone" region="status" />
+
+## Output
+
+`info` reaches the console only; `warn` and `error` reach both.
+
+<Example name="phone" output />
+
+## When the phone fails
+
+An error raised by `emit` marks the slot `down`: records for it are skipped until the next probe, and one incident goes to the alarm route instead of one per record. When a probe succeeds the slot is `up` again and the recovery is told too. Set `on_fail` on the entry to send that incident somewhere else, `ignore` to only count failures, or `panic` to raise in the caller. See [When a sink fails](../failures).
+
+## Whole program
+
+<Example name="phone" />
