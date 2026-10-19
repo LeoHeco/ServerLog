@@ -1,3 +1,5 @@
+<p align="center"><img src="site/static/img/logo.svg" width="96" alt=""></p>
+
 # serlog
 
 A modern, high-performance logging framework: any number of sinks, each configured on its own, a drop-in match for the popular loggers of each language through compat profiles.
