@@ -67,6 +67,7 @@ export {
 } from "./logger.ts";
 export { type Meta, meta } from "./meta.ts";
 export {
+  type Conditions,
   Dedupe,
   Exclude,
   Fields,
@@ -74,12 +75,13 @@ export {
   Match,
   type Processor,
   Redact,
+  type RedactOptions,
   Sample,
   Sanitise,
   type Step,
 } from "./process/index.ts";
 export { type Full, type Queue, queue } from "./queue.ts";
-export { type Fields as FieldList, field, type LogRecord, record } from "./record.ts";
+export { type Extras, type Fields as FieldList, field, type LogRecord, record } from "./record.ts";
 export { bind } from "./scope.ts";
 export { Entry, type Sink, type SlotOptions } from "./sink.ts";
 export {
@@ -95,5 +97,5 @@ export {
   type MemoryOptions,
   type Rotate,
 } from "./sinks/index.ts";
-export { type Health, Slot, type Status } from "./slot/index.ts";
+export { type Health, type Phase, Slot, type Status } from "./slot/index.ts";
 export { init, isStarted, type Settings } from "./start.ts";

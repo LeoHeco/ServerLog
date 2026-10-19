@@ -29,4 +29,15 @@ export function run(steps: readonly Step[], rec: LogRecord): LogRecord | null {
   return cur;
 }
 
-export { Dedupe, Exclude, Fields, Limit, Match, Redact, Sample, Sanitise } from "./builtin.ts";
+export {
+  type Conditions,
+  Dedupe,
+  Exclude,
+  Fields,
+  Limit,
+  Match,
+  Redact,
+  type RedactOptions,
+  Sample,
+  Sanitise,
+} from "./builtin.ts";
