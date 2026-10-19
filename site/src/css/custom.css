@@ -200,6 +200,7 @@
 .theme-code-block {
   border: 1px solid var(--line);
   box-shadow: none;
+  tab-size: 4;
   --prism-background-color: var(--code) !important;
 }
 
